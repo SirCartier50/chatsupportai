@@ -1,28 +1,56 @@
 'use client'
 import Image from "next/image"
+import { useRouter } from "next/navigation";
 import { useRef, useState, useEffect } from "react"
 import {Box, Button, Stack, TextField} from '@mui/material'
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import {auth, firestore} from "@/firebase";
 
 export default function Home() {
+  const router = useRouter();
+  const { uid } = router.query || {}; // Retrieve the user ID from query parameters
+  const [authenticated, setAuthenticated] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [messages, setMessages] = useState([{
-    role: 'assistant',
-    content: `Hi! I'm the Headstarter Support Agent, how can I assist you today?`
-  }])
+      role: 'assistant',
+      content: `Hi! I'm the Headstarter Support Agent, how can I assist you today?`
+    }])
 
   const [message, setMessage] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const messagesEndRef = useRef(null)
-
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
-  }
-
   useEffect(() => {
-    scrollToBottom()
-  }, [messages])
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setAuthenticated(true);
+      } else {
+        router.push('/login');
+      }
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [router]);
+  const scrollToBottom = () => {
+      messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+    }
+
+    useEffect(() => {
+      scrollToBottom()
+    }, [messages])
+  
+  
+
+  
 
   //Helpers
-
+  const handleSignout = async ()=>{
+    try{
+        await signOut(auth);
+    }catch{
+        console.log("hi")
+    }
+  };
   const sendMessage = async () => {
     if (!message.trim() || isLoading) return;
     setIsLoading(true)
@@ -95,6 +123,7 @@ export default function Home() {
     }
   }
   return(
+    
     <Box 
       width ="100vw"
       height="100vh"
@@ -103,7 +132,7 @@ export default function Home() {
       justifyContent="center"
       alignItems="center"
     >
-      
+      <Button variant="contained" onClick={handleSignout}>Sign Out</Button>
       <Stack
         direction="column"
         width="600px"
