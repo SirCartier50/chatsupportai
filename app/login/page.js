@@ -110,7 +110,7 @@ export default function Login(){
               </Box>
             </Modal>
             <Button  color="primary" onClick={handleOpen}>
-              Don't have an account? Sign Up!
+              Need have an account? Sign Up!
             </Button>
           </Box>
         </Container>
